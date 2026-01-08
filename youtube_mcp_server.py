@@ -37,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger("youtube-mcp-server")
 
 # Create FastMCP instance
-mcp = FastMCP("YouTube MCP Server")
+mcp = FastMCP("CL YouTube MCP Server")
 
 # Global service instance
 _service = None
