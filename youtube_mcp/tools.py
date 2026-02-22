@@ -21,6 +21,14 @@ def register_tools(mcp: FastMCP) -> None:
         description="Get information about the authenticated user's YouTube channel",
     )
     def get_my_channel(oauth_token: OAuthTokenData) -> ListToolResponse:
+        """Get current user's channel profile and stats.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+
+        Returns:
+            YouTube channel list response (mine=true) or error.
+        """
         logger.info("Executing get_my_channel")
         try:
             service = get_service(oauth_token)
@@ -43,6 +51,15 @@ def register_tools(mcp: FastMCP) -> None:
     def get_my_playlists(
         oauth_token: OAuthTokenData, max_results: int = 25
     ) -> ListToolResponse:
+        """List playlists from the authenticated channel.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            max_results: Maximum playlists to return (capped at 50).
+
+        Returns:
+            Playlist list response or error.
+        """
         logger.info("Executing get_my_playlists")
         try:
             service = get_service(oauth_token)
@@ -65,6 +82,18 @@ def register_tools(mcp: FastMCP) -> None:
         max_results: int = 10,
         order: str = "relevance",
     ) -> ListToolResponse:
+        """Search YouTube videos.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            query: Search query text.
+            max_results: Maximum videos to return (capped at 50).
+            order: Sort order. Common values: `relevance`, `date`, `rating`,
+                `title`, `videoCount`, `viewCount`.
+
+        Returns:
+            Video search list response or error.
+        """
         logger.info(f"Executing search_videos with query: {query}")
         try:
             service = get_service(oauth_token)
@@ -91,6 +120,15 @@ def register_tools(mcp: FastMCP) -> None:
     def get_video_details(
         oauth_token: OAuthTokenData, video_id: str
     ) -> ListToolResponse:
+        """Get full details for a video.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            video_id: YouTube video ID.
+
+        Returns:
+            Video details list response or error.
+        """
         logger.info(f"Executing get_video_details for video: {video_id}")
         try:
             service = get_service(oauth_token)
@@ -110,6 +148,16 @@ def register_tools(mcp: FastMCP) -> None:
     def get_channel_videos(
         oauth_token: OAuthTokenData, channel_id: str, max_results: int = 25
     ) -> ListToolResponse:
+        """List recent videos from a specific channel.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            channel_id: YouTube channel ID.
+            max_results: Maximum videos to return (capped at 50).
+
+        Returns:
+            Channel video search response or error.
+        """
         logger.info(f"Executing get_channel_videos for channel: {channel_id}")
         try:
             service = get_service(oauth_token)
@@ -133,6 +181,16 @@ def register_tools(mcp: FastMCP) -> None:
     def get_playlist_items(
         oauth_token: OAuthTokenData, playlist_id: str, max_results: int = 50
     ) -> ListToolResponse:
+        """List items inside a playlist.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            playlist_id: YouTube playlist ID.
+            max_results: Maximum items to return (capped at 50).
+
+        Returns:
+            Playlist items response or error.
+        """
         logger.info(f"Executing get_playlist_items for playlist: {playlist_id}")
         try:
             service = get_service(oauth_token)
@@ -157,6 +215,17 @@ def register_tools(mcp: FastMCP) -> None:
         max_results: int = 20,
         order: str = "relevance",
     ) -> ListToolResponse:
+        """Get top-level comments for a video.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            video_id: YouTube video ID.
+            max_results: Maximum comment threads to return (capped at 100).
+            order: Comment order. Supported values: `relevance`, `time`.
+
+        Returns:
+            Comment thread list response or error.
+        """
         logger.info(f"Executing get_video_comments for video: {video_id}")
         try:
             service = get_service(oauth_token)
@@ -182,6 +251,15 @@ def register_tools(mcp: FastMCP) -> None:
     def get_my_subscriptions(
         oauth_token: OAuthTokenData, max_results: int = 25
     ) -> ListToolResponse:
+        """List channel subscriptions for the authenticated user.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            max_results: Maximum subscriptions to return (capped at 50).
+
+        Returns:
+            Subscriptions response or error.
+        """
         logger.info("Executing get_my_subscriptions")
         try:
             service = get_service(oauth_token)
@@ -204,6 +282,15 @@ def register_tools(mcp: FastMCP) -> None:
     def get_my_activities(
         oauth_token: OAuthTokenData, max_results: int = 25
     ) -> ListToolResponse:
+        """List recent channel activities for the authenticated user.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            max_results: Maximum activities to return (capped at 50).
+
+        Returns:
+            Activities list response or error.
+        """
         logger.info("Executing get_my_activities")
         try:
             service = get_service(oauth_token)
@@ -229,6 +316,18 @@ def register_tools(mcp: FastMCP) -> None:
         description: str = "",
         privacy_status: str = "private",
     ) -> ResourceToolResponse:
+        """Create a new YouTube playlist.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            title: Playlist title.
+            description: Optional playlist description.
+            privacy_status: Privacy setting. Common values: `private`, `public`,
+                `unlisted`.
+
+        Returns:
+            Created playlist resource or error.
+        """
         logger.info(f"Executing create_playlist: {title}")
         try:
             service = get_service(oauth_token)
@@ -252,6 +351,16 @@ def register_tools(mcp: FastMCP) -> None:
     def add_video_to_playlist(
         oauth_token: OAuthTokenData, playlist_id: str, video_id: str
     ) -> ResourceToolResponse:
+        """Add an existing video to a playlist.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            playlist_id: Target playlist ID.
+            video_id: Video ID to insert.
+
+        Returns:
+            Created playlist-item resource or error.
+        """
         logger.info(f"Executing add_video_to_playlist: {video_id} to {playlist_id}")
         try:
             service = get_service(oauth_token)
@@ -277,6 +386,15 @@ def register_tools(mcp: FastMCP) -> None:
     def subscribe_to_channel(
         oauth_token: OAuthTokenData, channel_id: str
     ) -> ResourceToolResponse:
+        """Subscribe the authenticated user to a channel.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            channel_id: Channel ID to subscribe to.
+
+        Returns:
+            Created subscription resource or error.
+        """
         logger.info(f"Executing subscribe_to_channel: {channel_id}")
         try:
             service = get_service(oauth_token)
@@ -306,6 +424,16 @@ def register_tools(mcp: FastMCP) -> None:
         video_id: str,
         rating: Literal["like", "dislike", "none"],
     ) -> MessageToolResponse:
+        """Rate a video.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            video_id: YouTube video ID.
+            rating: Rating value. Allowed values: `like`, `dislike`, `none`.
+
+        Returns:
+            Success message or error.
+        """
         logger.info(f"Executing rate_video: {video_id} with rating {rating}")
         try:
             service = get_service(oauth_token)
@@ -326,6 +454,16 @@ def register_tools(mcp: FastMCP) -> None:
     def post_comment(
         oauth_token: OAuthTokenData, video_id: str, text: str
     ) -> ResourceToolResponse:
+        """Post a top-level comment on a video.
+
+        Args:
+            oauth_token: OAuth credentials object with token fields.
+            video_id: YouTube video ID.
+            text: Comment text content.
+
+        Returns:
+            Created comment-thread resource or error.
+        """
         logger.info(f"Executing post_comment on video: {video_id}")
         try:
             service = get_service(oauth_token)
