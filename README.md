@@ -1,5 +1,3 @@
-# YouTube MCP Server
-
 **Manage YouTube channels, videos, playlists, and analytics via API.**
 
 A Model Context Protocol (MCP) server that exposes YouTube's API for managing channels, uploading content, interacting with videos, and accessing comprehensive analytics.
