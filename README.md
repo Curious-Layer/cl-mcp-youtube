@@ -1,240 +1,949 @@
-# YouTube MCP Server
+**Manage YouTube channels, videos, playlists, and analytics via API.**
 
-A Model Context Protocol (MCP) server that provides access to YouTube API endpoints.
+A Model Context Protocol (MCP) server that exposes YouTube's API for managing channels, uploading content, interacting with videos, and accessing comprehensive analytics.
 
-## Features
+---
 
-This MCP server provides the following YouTube operations:
+## Overview
 
-### Channel Management
-- **get_my_channel**: Get information about your YouTube channel
-- **get_my_activities**: Get recent activities on your channel
-- **get_my_playlists**: Get your channel's playlists
-- **get_my_subscriptions**: Get your channel subscriptions
+The YouTube MCP Server provides stateless, multi-user access to YouTube's core operations:
 
-### Video Operations
-- **search_videos**: Search for videos on YouTube
-- **get_video_details**: Get detailed information about a specific video
-- **get_channel_videos**: Get videos from a specific channel
-- **get_popular_videos**: Get most popular videos by region
-- **get_video_comments**: Get comments for a specific video
+- **Channel Management** — Access and manage authenticated user's YouTube channel, subscriptions, and activities
+- **Video Operations** — Search, retrieve, rate, and comment on videos with detailed metadata
+- **Playlist Management** — Create playlists, manage playlist items, and organize video collections
+- **Content Interaction** — Subscribe to channels, like/dislike videos, and post comments
 
-### Playlist Operations
-- **get_playlist_items**: Get videos from a specific playlist
-- **create_playlist**: Create a new playlist
-- **add_video_to_playlist**: Add a video to a playlist
+Perfect for:
 
-### Interaction Operations
-- **subscribe_to_channel**: Subscribe to a YouTube channel
-- **rate_video**: Like or dislike a video
-- **post_comment**: Post a comment on a video
+- Automated YouTube content management and distribution
+- Building AI-powered video discovery and recommendation systems
+- Integrating YouTube capabilities into multi-agent applications and workflows
 
-## Setup
+---
 
-### 1. Install Dependencies
+## Tools
 
-```bash
-cd youtube
-pip install -r requirements.txt
-```
+<details>
+<summary><code>get_my_channel</code> — Get information about the authenticated user's YouTube channel</summary>
 
-### 2. Configure Google OAuth
+Retrieve detailed information about the authenticated user's YouTube channel including channel ID, name, subscriber count, and other metadata.
 
-You need to create OAuth credentials with the following scopes:
-- `https://www.googleapis.com/auth/youtube.force-ssl`
-- `https://www.googleapis.com/auth/youtube.readonly`
-- `https://www.googleapis.com/auth/youtube`
-- `https://www.googleapis.com/auth/youtube.upload`
+**Inputs:**
 
-Save your OAuth credentials as `secret.json` in this directory.
+- `oauth_token` (object, required) — Valid Google OAuth token object with YouTube scopes
 
-### 3. Authenticate
-
-Run the authentication script:
-
-```bash
-python authenticate.py
-```
-
-This will:
-1. Open a browser window for authentication
-2. Create a `token.json` file to store your credentials
-3. Reuse the token on subsequent runs
-
-### 4. Configure Your MCP Client
-
-#### For Claude Desktop (stdio mode - default)
-
-Add this to your Claude Desktop MCP settings file:
-
-**Location**: `~/.config/Claude/claude_desktop_config.json` (Linux)
+**Output:**
 
 ```json
 {
-  "mcpServers": {
-    "youtube": {
-      "command": "python3",
-      "args": ["/home/shadyskies/Desktop/mcp-tools/youtube/youtube_mcp_server.py"],
-      "cwd": "/home/shadyskies/Desktop/mcp-tools/youtube"
+  "result": {
+    "kind": "youtube#channelListResponse",
+    "pageInfo": {
+      "totalResults": 1,
+      "resultsPerPage": 1
+    },
+    "items": [
+      {
+        "id": "UCxxxxxxxxxxxxxx",
+        "snippet": {
+          "title": "Channel Name",
+          "description": "Channel description"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_my_channel
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  }
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_my_playlists</code> — Get playlists from the authenticated user's channel</summary>
+
+Retrieve all playlists created by the authenticated user with pagination support.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `max_results` (integer, optional) — Maximum playlists to return (default: 25)
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#playlistListResponse",
+    "pageInfo": {
+      "totalResults": 5,
+      "resultsPerPage": 25
+    },
+    "items": [
+      {
+        "id": "PLxxxxxxxxxxxxxx",
+        "snippet": {
+          "title": "My Playlist",
+          "description": "Playlist description"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_my_playlists
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "max_results": 25
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>search_videos</code> — Search for videos on YouTube</summary>
+
+Search for videos on YouTube using keywords with advanced filtering options.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `query` (string, required) — Search query string
+- `max_results` (integer, optional) — Maximum results to return (default: 10)
+- `order` (string, optional) — Sort order: "relevance", "date", "viewCount", "rating" (default: "relevance")
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#searchListResponse",
+    "pageInfo": {
+      "totalResults": 1000000,
+      "resultsPerPage": 10
+    },
+    "items": [
+      {
+        "kind": "youtube#searchResult",
+        "id": {
+          "videoId": "dQw4w9WgXcQ"
+        },
+        "snippet": {
+          "title": "Video Title",
+          "description": "Video description"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/search_videos
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "query": "machine learning tutorial",
+  "max_results": 10,
+  "order": "relevance"
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_video_details</code> — Get detailed information about a specific video by ID</summary>
+
+Retrieve comprehensive details about a specific video including statistics, ratings, comments count, and metadata.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `video_id` (string, required) — The YouTube video ID
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#videoListResponse",
+    "pageInfo": {
+      "totalResults": 1,
+      "resultsPerPage": 1
+    },
+    "items": [
+      {
+        "id": "dQw4w9WgXcQ",
+        "snippet": {
+          "title": "Video Title",
+          "description": "Video description",
+          "publishedAt": "2024-01-01T12:00:00Z"
+        },
+        "statistics": {
+          "viewCount": "1000000",
+          "likeCount": "50000",
+          "commentCount": "5000"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_video_details
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "video_id": "dQw4w9WgXcQ"
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_channel_videos</code> — Get videos from a specific channel</summary>
+
+Retrieve all videos uploaded by a specific channel with pagination support.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `channel_id` (string, required) — The YouTube channel ID
+- `max_results` (integer, optional) — Maximum videos to return (default: 25)
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#searchListResponse",
+    "pageInfo": {
+      "totalResults": 100,
+      "resultsPerPage": 25
+    },
+    "items": [
+      {
+        "id": {
+          "videoId": "video-id-123"
+        },
+        "snippet": {
+          "title": "Video Title",
+          "channelId": "UCxxxxxxxxxxxxxx"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_channel_videos
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "channel_id": "UCxxxxxxxxxxxxxx",
+  "max_results": 25
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_playlist_items</code> — Get videos from a specific playlist</summary>
+
+Retrieve all videos in a specific playlist with full details and ordering.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `playlist_id` (string, required) — The YouTube playlist ID
+- `max_results` (integer, optional) — Maximum items to return (default: 50)
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#playlistItemListResponse",
+    "pageInfo": {
+      "totalResults": 50,
+      "resultsPerPage": 50
+    },
+    "items": [
+      {
+        "id": "PLitem123",
+        "snippet": {
+          "title": "Video Title",
+          "videoId": "dQw4w9WgXcQ",
+          "position": 0
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_playlist_items
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "playlist_id": "PLxxxxxxxxxxxxxx",
+  "max_results": 50
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_video_comments</code> — Get comments for a specific video</summary>
+
+Retrieve comments on a video with filtering and sorting options.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `video_id` (string, required) — The YouTube video ID
+- `max_results` (integer, optional) — Maximum comments to return (default: 20)
+- `order` (string, optional) — Sort order: "relevance" or "time" (default: "relevance")
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#commentThreadListResponse",
+    "pageInfo": {
+      "totalResults": 5000,
+      "resultsPerPage": 20
+    },
+    "items": [
+      {
+        "snippet": {
+          "videoId": "dQw4w9WgXcQ",
+          "textDisplay": "Great video!",
+          "authorDisplayName": "User Name"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_video_comments
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "video_id": "dQw4w9WgXcQ",
+  "max_results": 20,
+  "order": "relevance"
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_my_subscriptions</code> — Get the authenticated user's channel subscriptions</summary>
+
+Retrieve all channels that the authenticated user is subscribed to.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `max_results` (integer, optional) — Maximum subscriptions to return (default: 25)
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#subscriptionListResponse",
+    "pageInfo": {
+      "totalResults": 150,
+      "resultsPerPage": 25
+    },
+    "items": [
+      {
+        "snippet": {
+          "title": "Subscribed Channel",
+          "channelId": "UCxxxxxxxxxxxxxx"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_my_subscriptions
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "max_results": 25
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>get_my_activities</code> — Get recent activities on the authenticated user's channel</summary>
+
+Retrieve recent activities on the authenticated user's channel including uploads, likes, and other interactions.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `max_results` (integer, optional) — Maximum activities to return (default: 25)
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#activityListResponse",
+    "pageInfo": {
+      "totalResults": 100,
+      "resultsPerPage": 25
+    },
+    "items": [
+      {
+        "id": "activity-123",
+        "snippet": {
+          "type": "upload",
+          "title": "Activity Title"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/get_my_activities
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "max_results": 25
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><code>create_playlist</code> — Create a new playlist on the authenticated user's channel</summary>
+
+Create a new playlist with customizable title, description, and privacy settings.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `title` (string, required) — Playlist title
+- `description` (string, optional) — Playlist description (default: "")
+- `privacy_status` (string, optional) — Privacy level: "private", "public", or "unlisted" (default: "private")
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#playlist",
+    "id": "PLxxxxxxxxxxxxxx",
+    "snippet": {
+      "title": "My New Playlist",
+      "description": "Playlist description"
+    },
+    "status": {
+      "privacyStatus": "private"
     }
   }
 }
 ```
 
-#### For HTTP/SSE Transport
+**Usage Example:**
 
-You can run the server with different transport modes:
-
-**SSE (Server-Sent Events)**:
 ```bash
-python youtube_mcp_server.py --transport sse --host 0.0.0.0 --port 8000
+POST /mcp/cyoutube/create_playlist
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "title": "My New Playlist",
+  "description": "A collection of my favorite videos",
+  "privacy_status": "private"
+}
 ```
 
-**Streamable HTTP**:
+</details>
+
+---
+
+<details>
+<summary><code>add_video_to_playlist</code> — Add a video to a playlist</summary>
+
+Add a specific video to an existing playlist.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `playlist_id` (string, required) — The target playlist ID
+- `video_id` (string, required) — The video ID to add
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#playlistItem",
+    "id": "PLitem456",
+    "snippet": {
+      "playlistId": "PLxxxxxxxxxxxxxx",
+      "videoId": "dQw4w9WgXcQ"
+    }
+  }
+}
+```
+
+**Usage Example:**
+
 ```bash
-python youtube_mcp_server.py --transport streamable-http --host 0.0.0.0 --port 8000
+POST /mcp/cyoutube/add_video_to_playlist
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "playlist_id": "PLxxxxxxxxxxxxxx",
+  "video_id": "dQw4w9WgXcQ"
+}
 ```
 
-**stdio (default)**:
+</details>
+
+---
+
+<details>
+<summary><code>subscribe_to_channel</code> — Subscribe to a YouTube channel</summary>
+
+Subscribe the authenticated user to a specific YouTube channel.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `channel_id` (string, required) — The channel ID to subscribe to
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#subscription",
+    "id": "subscription-123",
+    "snippet": {
+      "title": "Channel Name",
+      "channelId": "UCxxxxxxxxxxxxxx"
+    }
+  }
+}
+```
+
+**Usage Example:**
+
 ```bash
-python youtube_mcp_server.py --transport stdio
-```
+POST /mcp/cyoutube/subscribe_to_channel
 
-## Usage Examples
-
-### Get My Channel Info
-```json
 {
-  "tool": "get_my_channel"
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "channel_id": "UCxxxxxxxxxxxxxx"
 }
 ```
 
-### Search Videos
+</details>
+
+---
+
+<details>
+<summary><code>rate_video</code> — Rate a video (like or dislike)</summary>
+
+Like, dislike, or clear rating for a video.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `video_id` (string, required) — The video ID to rate
+- `rating` (string, required) — Rating action: "like", "dislike", or "none"
+
+**Output:**
+
 ```json
 {
-  "tool": "search_videos",
-  "arguments": {
-    "query": "python tutorial",
-    "max_results": 10,
-    "order": "relevance"
+  "result": {
+    "message": "Video rated successfully"
   }
 }
 ```
 
-### Get Video Details
-```json
-{
-  "tool": "get_video_details",
-  "arguments": {
-    "video_id": "dQw4w9WgXcQ"
-  }
-}
-```
+**Usage Example:**
 
-### Create Playlist
-```json
-{
-  "tool": "create_playlist",
-  "arguments": {
-    "title": "My Favorite Videos",
-    "description": "A collection of my favorite videos",
-    "privacy_status": "private"
-  }
-}
-```
-
-### Subscribe to Channel
-```json
-{
-  "tool": "subscribe_to_channel",
-  "arguments": {
-    "channel_id": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
-  }
-}
-```
-
-### Rate Video
-```json
-{
-  "tool": "rate_video",
-  "arguments": {
-    "video_id": "dQw4w9WgXcQ",
-    "rating": "like"
-  }
-}
-```
-
-## API Parameters
-
-### Search Order Options
-- `relevance` - Resources sorted by relevance (default)
-- `date` - Resources sorted by creation date (newest first)
-- `rating` - Resources sorted by rating
-- `title` - Resources sorted alphabetically by title
-- `viewCount` - Resources sorted by view count
-
-### Privacy Status Options
-- `private` - Only visible to you
-- `unlisted` - Anyone with the link can view
-- `public` - Visible to everyone
-
-### Rating Options
-- `like` - Like the video
-- `dislike` - Dislike the video
-- `none` - Remove previous rating
-
-## Region Codes
-
-Common region codes for `get_popular_videos`:
-- `US` - United States
-- `GB` - United Kingdom
-- `CA` - Canada
-- `AU` - Australia
-- `IN` - India
-- `JP` - Japan
-- `DE` - Germany
-- `FR` - France
-
-## Troubleshooting
-
-### "token.json not found" Error
-Run the authentication script:
 ```bash
-python authenticate.py
+POST /mcp/cyoutube/rate_video
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "video_id": "dQw4w9WgXcQ",
+  "rating": "like"
+}
 ```
 
-### Authentication Issues
-If you get authentication errors:
-1. Delete `token.json`
-2. Run `python authenticate.py` again
-3. Complete the OAuth flow in your browser
+</details>
 
-### Permission Denied
-Make sure your OAuth credentials have the correct scopes enabled in the Google Cloud Console:
+---
+
+<details>
+<summary><code>post_comment</code> — Post a comment on a video</summary>
+
+Post a comment on a specific video as the authenticated user.
+
+**Inputs:**
+
+- `oauth_token` (object, required) — Valid Google OAuth token object
+- `video_id` (string, required) — The video ID to comment on
+- `text` (string, required) — Comment text content
+
+**Output:**
+
+```json
+{
+  "result": {
+    "kind": "youtube#comment",
+    "id": "comment-123",
+    "snippet": {
+      "videoId": "dQw4w9WgXcQ",
+      "textDisplay": "Great video!"
+    }
+  }
+}
+```
+
+**Usage Example:**
+
+```bash
+POST /mcp/cyoutube/post_comment
+
+{
+  "oauth_token": {
+    "token": "ya29.a0AfH6SMxxxxxxxxxxxxxx",
+    "refresh_token": "1//0xxxxx",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "client_id": "xxx.apps.googleusercontent.com",
+    "client_secret": "xxxxx",
+    "scopes": ["https://www.googleapis.com/auth/youtube"]
+  },
+  "video_id": "dQw4w9WgXcQ",
+  "text": "Great video! Thanks for the tutorial."
+}
+```
+
+</details>
+
+---
+
+## Reference & Support
+
+<details>
+<summary><strong>API Parameters Reference</strong></summary>
+
+### Pagination
+
+- `max_results` — Maximum results per page (varies by endpoint: 10-50)
+- `nextPageToken` — Token for retrieving next page of results
+- `prevPageToken` — Token for retrieving previous page of results
+
+### Search & Filtering
+
+- `query` — Search keywords for video search
+- `order` — Sort results by: "relevance", "date", "viewCount", "rating"
+
+### Content Types
+
+- `kind` — Response type identifier (e.g., "youtube#video", "youtube#playlist")
+- `type` — Activity type: "upload", "like", "subscribe", "favorite", "comment", "playlistItem"
+
+### Resource Formats
+
+**Video Resource:**
+
+```
+videos/{VIDEO_ID}
+Example: dQw4w9WgXcQ
+```
+
+**Channel Resource:**
+
+```
+channels/{CHANNEL_ID}
+Example: UCxxxxxxxxxxxxxx
+```
+
+**Playlist Resource:**
+
+```
+playlists/{PLAYLIST_ID}
+Example: PLxxxxxxxxxxxxxx
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong>OAuth Guide</strong></summary>
+
+All tools require a valid Google OAuth token. Here's how to obtain one:
+
+### Step 1: Create Google Cloud Project
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Navigate to APIs & Services → Credentials
-3. Edit your OAuth 2.0 Client ID
-4. Ensure all required scopes are enabled
-5. Add `http://localhost:8080` to authorized redirect URIs
+2. Create a new project or select an existing one
+3. Enable the **YouTube Data API v3** from the API Library
 
-### Quota Limits
-YouTube API has quota limits. If you exceed them, you'll get quota errors. Check your quota usage in the Google Cloud Console.
+### Step 2: Create OAuth 2.0 Credentials
 
-## Security Notes
+1. Navigate to **Credentials** in Google Cloud Console
+2. Click **+ Create Credentials** → **OAuth client ID**
+3. Select your application type (Desktop, Web, or other)
+4. Download the credentials JSON file
 
-- Keep `secret.json` and `token.json` secure and never commit them to version control
-- The server uses OAuth 2.0 for secure authentication
-- Access tokens are refreshed automatically when they expire
-- All operations are performed with the authenticated user's permissions
+### Step 3: Authenticate
 
-## Logging
+Use your Google account to authenticate and obtain the OAuth token. Refer to [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2) for detailed authentication steps.
 
-The server logs all operations to:
-- Console/stderr (for real-time monitoring)
-- `youtube_mcp_server.log` (for persistent records)
+### Step 4: Required Scopes
 
-Log levels:
-- `INFO`: Normal operations and key events
-- `DEBUG`: Detailed information
-- `WARNING`: Warnings
-- `ERROR`: Authentication failures, API errors
+Ensure your OAuth token has these scopes:
+
+- `https://www.googleapis.com/auth/youtube` — Full YouTube account access
+- `https://www.googleapis.com/auth/youtube.readonly` — Read-only access to YouTube
+- `https://www.googleapis.com/auth/youtube.force-ssl` — HTTPS-only access
+
+</details>
+
+---
+
+<details>
+<summary><strong>Troubleshooting</strong></summary>
+
+### **Missing or Invalid OAuth Token**
+
+- **Cause:** OAuth token not provided in request or incorrect format
+- **Solution:**
+  1. Verify `oauth_token` parameter is present in request
+  2. Check token is valid and not expired
+  3. Obtain a fresh OAuth token from Google
+
+### **Insufficient Permissions**
+
+- **Cause:** OAuth token lacks required scopes for operation
+- **Solution:**
+  1. Verify token has all required YouTube scopes
+  2. Regenerate token with additional scopes if needed
+  3. Check Google Cloud project has YouTube Data API v3 enabled
+
+### **Insufficient Credits**
+
+- **Cause:** API calls have exceeded your requests limits
+- **Solution:**
+  1. Check credit usage in your Curious Layer dashboard
+  2. Upgrade to a paid plan or add credits for higher limits
+  3. Contact support for credit adjustments
+
+### **Malformed Request Payload**
+
+- **Cause:** JSON payload is invalid or missing required fields
+- **Solution:**
+  1. Validate JSON syntax before sending
+  2. Ensure all required parameters are included
+  3. Check parameter types match expected values (string, integer, object)
+
+### **Server Not Found**
+
+- **Cause:** Incorrect server name in the API endpoint
+- **Solution:**
+  1. Verify endpoint format: `/mcp/{server-name}/{tool-name}`
+  2. Use lowercase server name: `/mcp/cyoutube/...`
+  3. Check available servers in documentation
+
+### **Video Not Found or Access Denied**
+
+- **Cause:** Video ID is invalid or video is private/deleted
+- **Solution:**
+  1. Verify video ID is correct
+  2. Check if video is public or accessible by authenticated user
+  3. Ensure video hasn't been deleted or made private
+
+### **Authentication Token Invalid or Expired**
+
+- **Cause:** Token rejected by YouTube API or has expired
+- **Solution:**
+  1. Obtain a fresh OAuth token from Google
+  2. Verify token has all required YouTube scopes
+  3. Check token expiration and refresh if needed
+
+### **Quota Exceeded**
+
+- **Cause:** API quota for the day/month has been exceeded
+- **Solution:**
+  1. Check quota usage in Google Cloud Console
+  2. Wait until quota resets (usually daily)
+  3. Upgrade Google Cloud project plan for higher quota
+
+</details>
+
+---
+
+<details>
+<summary><strong>Resources</strong></summary>
+
+- **[YouTube API Documentation](https://developers.google.com/youtube/v3)** — Official YouTube API reference
+- **[Google Cloud OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)** — Authentication setup guide
+- **[YouTube Data API Reference](https://developers.google.com/youtube/v3/reference)** — Complete API endpoint reference
+- **[YouTube API Quotas](https://developers.google.com/youtube/v3/getting-started#quota)** — Quota and rate limits
+- **[FastMCP Docs](https://gofastmcp.com/v2/getting-started/welcome)** — FastMCP specification
+
+</details>
+
+---
