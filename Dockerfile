@@ -14,4 +14,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "python youtube_mcp_server.py --transport ${MCP_TRANSPORT:-streamable-http} --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "python server.py --transport ${MCP_TRANSPORT:-streamable-http} --host 0.0.0.0 --port ${PORT:-8080}"]
